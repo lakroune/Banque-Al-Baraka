@@ -1,0 +1,6 @@
+/**
+ * ClientDAO
+ */
+public class ClientDAO {
+
+}
