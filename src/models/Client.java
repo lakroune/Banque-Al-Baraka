@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Client {
 
-    private int id;
+    private String id;
     private String nom;
     private String email;
     private List<Compte> compteList;
@@ -14,25 +14,25 @@ public class Client {
         this.compteList = new ArrayList<>();
     }
 
-    public Client(int id, String nom, String email, List<Compte> compteList) {
+    public Client(String id, String nom, String email, List<Compte> compteList) {
         this.id = id;
         this.nom = nom;
         this.email = email;
         this.compteList = compteList != null ? compteList : new ArrayList<>();
     }
 
-    public Client(int id, String nom, String email) {
+    public Client(String id, String nom, String email) {
         this.id = id;
         this.nom = nom;
         this.email = email;
         this.compteList = new ArrayList<>();
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
