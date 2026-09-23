@@ -36,7 +36,7 @@ public class CompteDAO implements DAO<Compte> {
             }
 
             if (obj.getClient() != null) {
-                pstmt.setInt(7, obj.getClient().getId());
+                pstmt.setString(7, obj.getClient());
             } else {
                 pstmt.setNull(7, Types.INTEGER);
             }
@@ -149,4 +149,30 @@ public class CompteDAO implements DAO<Compte> {
         compte.setClient(client);
         return compte;
     }
+
+    public Optional<Compte> trouverCompteSoldeMax() throws SQLException {
+        String sql = "SELECT * FROM compte ORDER BY solde DESC LIMIT 1";
+        try (Connection conn = DatabaseConnection.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+
+                return Optional.of(mapResultSetToCompte(rs));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<Compte> trouverCompteSoldeMin() throws SQLException {
+        String sql = "SELECT * FROM compte ORDER BY solde ASC LIMIT 1";
+        try (Connection conn = DatabaseConnection.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return Optional.of(mapResultSetToCompte(rs));
+            }
+        }
+        return Optional.empty();
+    }
+
 }
