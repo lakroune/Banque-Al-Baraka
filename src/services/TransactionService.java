@@ -1,21 +1,19 @@
 package services;
 
 import DAOS.TransactionDAO;
+import models.Transaction;
 
+/**
+ * TransactionService
+ */
 public class TransactionService {
 
-    private final TransactionDAO transactionDAO = new TransactionDAO();
+    private TransactionDAO transactionDAO = new TransactionDAO();
 
-    // public List<Transaction> listerParCompteTrieesParDate(String compteId) {
-    // try {
-    // return transactionDAO.findByCompteId(compteId).stream()
-    // .sorted(Comparator.comparing(Transaction::getDate).reversed())
-    // .collect(Collectors.toList());
-    // } catch (Exception e) {
-    // System.err.println("Erreur lors de la récupération des transactions du compte
-    // : " + e.getMessage());
-    // }
-    // return List.of();
-    // }
-
+    public boolean enregistrerTransaction(Transaction transaction) {
+        if (transaction == null || transaction.getMontant() <= 0) {
+            return false;
+        }
+        return transactionDAO.create(transaction);
+    }
 }

@@ -17,7 +17,7 @@ public class CompteDAO implements DAO<Compte> {
 
     @Override
     public boolean create(Compte obj) {
-        String sql = "INSERT INTO compte (id, numero, decouvert_autorise, taux_interet, type_compte, client_id) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO comptes (id, numero, decouvert_autorise, taux_interet, type_compte, client_id) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
@@ -51,7 +51,7 @@ public class CompteDAO implements DAO<Compte> {
 
     @Override
     public Optional<Compte> findById(String id) throws SQLException {
-        String sql = "SELECT * FROM compte WHERE id = ?";
+        String sql = "SELECT * FROM comptes WHERE id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
@@ -69,7 +69,7 @@ public class CompteDAO implements DAO<Compte> {
     @Override
     public List<Compte> findAll() throws SQLException {
         List<Compte> comptes = new ArrayList<>();
-        String sql = "SELECT * FROM compte";
+        String sql = "SELECT * FROM comptes";
         try (Connection connection = DatabaseConnection.getConnection();
                 Statement stmt = connection.createStatement();
                 ResultSet resultat = stmt.executeQuery(sql)) {
@@ -83,7 +83,7 @@ public class CompteDAO implements DAO<Compte> {
 
     @Override
     public boolean update(Compte obj) throws SQLException {
-        String sql = "UPDATE compte SET numero = ?, solde = ?, decouvert_autorise = ?, taux_interet = ?, type_compte = ?, client_id = ? WHERE id = ?";
+        String sql = "UPDATE comptes SET numero = ?, solde = ?, decouvert_autorise = ?, taux_interet = ?, type_compte = ?, client_id = ? WHERE id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
@@ -101,7 +101,7 @@ public class CompteDAO implements DAO<Compte> {
             }
 
             if (obj.getClient() != null) {
-                pstmt.setInt(6, obj.getClient().getId());
+                pstmt.setString(6, obj.getClient().getId());
             } else {
                 pstmt.setNull(6, Types.INTEGER);
             }
@@ -114,7 +114,7 @@ public class CompteDAO implements DAO<Compte> {
 
     @Override
     public boolean delete(String id) throws SQLException {
-        String sql = "DELETE FROM compte WHERE id = ?";
+        String sql = "DELETE FROM comptes WHERE id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
@@ -128,11 +128,11 @@ public class CompteDAO implements DAO<Compte> {
         String numero = rs.getString("numero");
         double solde = rs.getDouble("solde");
         String typeCompte = rs.getString("type_compte");
-        int clientId = rs.getInt("client_id");
 
+        String clientId = rs.getObject("client_id", String.class);
         Client client = null;
-        if (!rs.wasNull()) {
-            Optional<Client> clientOpt = clientDAO.findById(String.valueOf(clientId));
+        if (clientId != null) {
+            Optional<Client> clientOpt = clientDAO.findById(clientId);
             if (clientOpt.isPresent()) {
                 client = clientOpt.get();
             }
@@ -140,10 +140,10 @@ public class CompteDAO implements DAO<Compte> {
 
         Compte compte;
         if ("COURANT".equalsIgnoreCase(typeCompte)) {
-            double decouvert = rs.getDouble("decouvert_autorise");
+            Double decouvert = rs.getObject("decouvert_autorise", Double.class);
             compte = new CompteCourant(id, numero, solde, decouvert);
         } else {
-            double taux = rs.getDouble("taux_interet");
+            Double taux = rs.getObject("taux_interet", Double.class);
             compte = new CompteEpargne(id, numero, solde, taux);
         }
 
@@ -152,7 +152,7 @@ public class CompteDAO implements DAO<Compte> {
     }
 
     public Optional<Compte> trouverCompteSoldeMax() throws SQLException {
-        String sql = "SELECT * FROM compte ORDER BY solde DESC LIMIT 1";
+        String sql = "SELECT * FROM comptes ORDER BY solde DESC LIMIT 1";
         try (Connection conn = DatabaseConnection.getConnection();
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
@@ -165,7 +165,7 @@ public class CompteDAO implements DAO<Compte> {
     }
 
     public Optional<Compte> trouverCompteSoldeMin() throws SQLException {
-        String sql = "SELECT * FROM compte ORDER BY solde ASC LIMIT 1";
+        String sql = "SELECT * FROM comptes ORDER BY solde ASC LIMIT 1";
         try (Connection conn = DatabaseConnection.getConnection();
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {

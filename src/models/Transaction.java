@@ -1,6 +1,7 @@
 package models;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class Transaction {
     private String id;
@@ -11,10 +12,20 @@ public class Transaction {
     private Compte compte;
 
     public Transaction() {
+        this.id = UUID.randomUUID().toString();
     }
 
     public Transaction(String id, LocalDate date, Double montant, TypeTransaction type, String lieu, Compte compte) {
-        this.id = id;
+        this.id = id != null ? id : UUID.randomUUID().toString();
+        this.date = date;
+        this.montant = montant;
+        this.type = type;
+        this.lieu = lieu;
+        this.compte = compte;
+    }
+
+    public Transaction(LocalDate date, Double montant, TypeTransaction type, String lieu, Compte compte) {
+        this.id = UUID.randomUUID().toString();
         this.date = date;
         this.montant = montant;
         this.type = type;

@@ -18,7 +18,7 @@ public class TransactionDAO implements DAO<Transaction> {
 
     @Override
     public boolean create(Transaction obj) {
-        String sql = "INSERT INTO transaction (id, date_transaction, montant, type, lieu, compte_id) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO transactions (id, date_transaction, montant, type, lieu, compte_id) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
@@ -43,7 +43,7 @@ public class TransactionDAO implements DAO<Transaction> {
 
     @Override
     public Optional<Transaction> findById(String id) throws SQLException {
-        String sql = "SELECT * FROM transaction WHERE id = ?";
+        String sql = "SELECT * FROM transactions WHERE id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
@@ -61,7 +61,7 @@ public class TransactionDAO implements DAO<Transaction> {
     @Override
     public List<Transaction> findAll() throws SQLException {
         List<Transaction> transactions = new ArrayList<>();
-        String sql = "SELECT * FROM transaction";
+        String sql = "SELECT * FROM transactions";
         try (Connection connection = DatabaseConnection.getConnection();
                 Statement stmt = connection.createStatement();
                 ResultSet resultat = stmt.executeQuery(sql)) {
@@ -75,7 +75,7 @@ public class TransactionDAO implements DAO<Transaction> {
 
     @Override
     public boolean update(Transaction obj) throws SQLException {
-        String sql = "UPDATE transaction SET date_transaction = ?, montant = ?, type = ?, lieu = ?, compte_id = ? WHERE id = ?";
+        String sql = "UPDATE transactions SET date_transaction = ?, montant = ?, type = ?, lieu = ?, compte_id = ? WHERE id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
@@ -98,7 +98,7 @@ public class TransactionDAO implements DAO<Transaction> {
 
     @Override
     public boolean delete(String id) throws SQLException {
-        String sql = "DELETE FROM transaction WHERE id = ?";
+        String sql = "DELETE FROM transactions WHERE id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
