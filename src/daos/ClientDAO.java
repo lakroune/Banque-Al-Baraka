@@ -10,23 +10,24 @@ import java.util.Optional;
 
 public class ClientDAO implements DAO<Client> {
 
+    
     @Override
     public boolean create(Client obj) {
-        String sql = "INSERT INTO client (nom, email) VALUES (?, ?)";
-        try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setString(1, obj.getNom());
-            pstmt.setString(2, obj.getEmail());
+        if (obj.getId() == null || obj.getId().isEmpty()) {
+            obj.setId(java.util.UUID.randomUUID().toString());
+        }
 
-            int rows = pstmt.executeUpdate();
-            if (rows > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        obj.setId(generatedKeys.getInt(1));
-                    }
-                }
-                return true;
-            }
+        String sql = "INSERT INTO client (id, nom, email) VALUES (?, ?, ?)";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            pstmt.setString(1, obj.getId());
+            pstmt.setString(2, obj.getNom());
+            pstmt.setString(3, obj.getEmail());
+
+            return pstmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -43,7 +44,7 @@ public class ClientDAO implements DAO<Client> {
             try (ResultSet resultat = pstmt.executeQuery()) {
                 if (resultat.next()) {
                     Client client = new Client(
-                            resultat.getInt("id"),
+                            resultat.getString("id"),
                             resultat.getString("nom"),
                             resultat.getString("email"));
                     return Optional.of(client);
@@ -63,7 +64,7 @@ public class ClientDAO implements DAO<Client> {
 
             while (resultat.next()) {
                 Client client = new Client(
-                        resultat.getInt("id"),
+                        resultat.getString("id"),
                         resultat.getString("nom"),
                         resultat.getString("email"));
                 clients.add(client);
@@ -80,7 +81,7 @@ public class ClientDAO implements DAO<Client> {
 
             pstmt.setString(1, obj.getNom());
             pstmt.setString(2, obj.getEmail());
-            pstmt.setInt(3, obj.getId());
+            pstmt.setString(3, obj.getId());
 
             return pstmt.executeUpdate() > 0;
         }

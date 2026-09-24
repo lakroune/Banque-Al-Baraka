@@ -1,0 +1,33 @@
+-- Active: 1789486337362@@127.0.0.1@5433@bankab
+DROP TABLE IF EXISTS "transaction" CASCADE;
+
+DROP TABLE IF EXISTS "compte" CASCADE;
+
+DROP TABLE IF EXISTS "client" CASCADE;
+ 
+CREATE TABLE client (
+    id VARCHAR(50) PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL
+);
+
+CREATE TABLE compte (
+    id VARCHAR(50) PRIMARY KEY,
+    numero VARCHAR(50) UNIQUE NOT NULL,
+    solde DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    type_compte VARCHAR(20) NOT NULL,
+    decouvert_autorise DOUBLE PRECISION DEFAULT NULL,
+    taux_interet DOUBLE PRECISION DEFAULT NULL,
+    client_id VARCHAR NOT NULL,
+    CONSTRAINT fk_compte_client FOREIGN KEY (client_id) REFERENCES client (id) ON DELETE CASCADE
+);
+
+CREATE TABLE "transaction" (
+    id VARCHAR(50) PRIMARY KEY,
+    compte_id VARCHAR(50) NOT NULL,
+    montant DOUBLE PRECISION NOT NULL,
+    type VARCHAR(50) NOT NULL, -- 'VERSEMENT', 'RETRAIT', 'VIREMENT'
+    date TIMESTAMP NOT NULL,
+    lieu VARCHAR(100),
+    CONSTRAINT fk_transaction_compte FOREIGN KEY (compte_id) REFERENCES compte (id) ON DELETE CASCADE
+);

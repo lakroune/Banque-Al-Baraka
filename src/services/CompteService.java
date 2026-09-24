@@ -19,10 +19,7 @@ public class CompteService {
                 System.out.println("Erreur : Le numéro de compte ne peut pas être vide.");
                 return false;
             }
-            if (compte.getSolde() < 0) {
 
-                System.out.println("Attention : Création d'un compte avec un solde négatif.");
-            }
             return compteDAO.create(compte);
         } catch (Exception e) {
             System.out.println("Erreur lors de la création du compte : " + e.getMessage());

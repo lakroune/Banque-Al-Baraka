@@ -12,6 +12,11 @@ public class CompteEpargne extends Compte {
         this.tauxInteret = tauxInteret;
     }
 
+    public CompteEpargne(String numero, Double solde, Double tauxInteret) {
+        super(numero, solde);
+        this.tauxInteret = tauxInteret;
+    }
+
     public CompteEpargne(String id, String numero, Double solde, Double tauxInteret, Client client) {
         super(id, numero, solde, client);
         this.tauxInteret = tauxInteret;

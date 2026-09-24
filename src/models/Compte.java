@@ -1,5 +1,7 @@
 package models;
 
+import java.util.UUID;
+
 public abstract class Compte {
 
     private String id;
@@ -8,16 +10,23 @@ public abstract class Compte {
     private Client client;
 
     protected Compte() {
+        this.id = UUID.randomUUID().toString();
     }
 
     public Compte(String id, String numero, double solde) {
-        this.id = id;
+        this.id = (id != null && !id.isEmpty()) ? id : UUID.randomUUID().toString();
+        this.numero = numero;
+        this.solde = solde;
+    }
+
+    public Compte(String numero, double solde) {
+        this.id = UUID.randomUUID().toString();
         this.numero = numero;
         this.solde = solde;
     }
 
     public Compte(String id, String numero, double solde, Client client) {
-        this.id = id;
+        this.id = (id != null && !id.isEmpty()) ? id : UUID.randomUUID().toString();
         this.numero = numero;
         this.solde = solde;
         this.client = client;

@@ -12,6 +12,11 @@ public class CompteCourant extends Compte {
         this.decouvertAutorise = decouvertAutorise;
     }
 
+    public CompteCourant(String numero, Double solde, Double decouvertAutorise) {
+        super(numero, solde);
+        this.decouvertAutorise = decouvertAutorise;
+    }
+
     public CompteCourant(String id, String numero, Double solde, Double decouvertAutorise, Client client) {
         super(id, numero, solde, client);
         this.decouvertAutorise = decouvertAutorise;

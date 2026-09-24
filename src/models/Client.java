@@ -2,6 +2,7 @@ package models;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Client {
 
@@ -11,18 +12,19 @@ public class Client {
     private List<Compte> compteList;
 
     public Client() {
+        this.id = UUID.randomUUID().toString();
         this.compteList = new ArrayList<>();
     }
 
     public Client(String id, String nom, String email, List<Compte> compteList) {
-        this.id = id;
+        this.id = (id != null && !id.isEmpty()) ? id : UUID.randomUUID().toString();
         this.nom = nom;
         this.email = email;
         this.compteList = compteList != null ? compteList : new ArrayList<>();
     }
 
     public Client(String id, String nom, String email) {
-        this.id = id;
+        this.id = (id != null && !id.isEmpty()) ? id : UUID.randomUUID().toString();
         this.nom = nom;
         this.email = email;
         this.compteList = new ArrayList<>();

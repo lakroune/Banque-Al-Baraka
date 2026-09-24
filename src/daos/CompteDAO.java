@@ -17,28 +17,29 @@ public class CompteDAO implements DAO<Compte> {
 
     @Override
     public boolean create(Compte obj) {
-        String sql = "INSERT INTO compte (id, numero, solde, decouvert_autorise, taux_interet, type_compte, client_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO compte (id, numero, decouvert_autorise, taux_interet, type_compte, client_id) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, obj.getId());
             pstmt.setString(2, obj.getNumero());
-            pstmt.setDouble(3, obj.getSolde());
 
             if (obj instanceof CompteCourant) {
-                pstmt.setDouble(4, ((CompteCourant) obj).getDecouvertAutorise());
-                pstmt.setNull(5, Types.DOUBLE);
-                pstmt.setString(6, "COURANT");
-            } else if (obj instanceof CompteEpargne) {
+                Double decouvert = ((CompteCourant) obj).getDecouvertAutorise();
+                pstmt.setDouble(3, decouvert != null ? decouvert : 0.0);
                 pstmt.setNull(4, Types.DOUBLE);
-                pstmt.setDouble(5, ((CompteEpargne) obj).getTauxInteret());
-                pstmt.setString(6, "EPARGNE");
+                pstmt.setString(5, "COURANT");
+            } else if (obj instanceof CompteEpargne) {
+                pstmt.setNull(3, Types.DOUBLE);
+                Double taux = ((CompteEpargne) obj).getTauxInteret();
+                pstmt.setDouble(4, taux != null ? taux : 0.0);
+                pstmt.setString(5, "EPARGNE");
             }
 
             if (obj.getClient() != null) {
-                pstmt.setString(7, obj.getClient());
+                pstmt.setString(6, obj.getClient().getId());
             } else {
-                pstmt.setNull(7, Types.INTEGER);
+                pstmt.setNull(6, Types.VARCHAR);
             }
 
             return pstmt.executeUpdate() > 0;
