@@ -1,6 +1,5 @@
 package DAOS;
 
-
 import models.TypeTransaction;
 import models.Compte;
 import models.Transaction;
@@ -125,5 +124,27 @@ public class TransactionDAO implements DAO<Transaction> {
         }
 
         return new Transaction(id, date, montant, type, lieu, compte);
+    }
+
+    public List<Transaction> findByCompteTrieesParDate(String numeroCompte) {
+        List<Transaction> transactions = new ArrayList<>();
+
+        String sql = "SELECT t.* FROM transactions t JOIN comptes c ON t.compte_id = c.id WHERE c.numero = ? ORDER BY t.date_transaction DESC";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            pstmt.setString(1, numeroCompte);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Transaction transaction = mapResultSetToTransaction(rs);
+                    transactions.add(transaction);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return transactions;
     }
 }

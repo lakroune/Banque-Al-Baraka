@@ -1,5 +1,7 @@
 package services;
 
+import java.util.List;
+
 import DAOS.TransactionDAO;
 import models.Transaction;
 
@@ -15,5 +17,10 @@ public class TransactionService {
             return false;
         }
         return transactionDAO.create(transaction);
+    }
+
+    public List<Transaction> listerParCompteTrieesParDate(String numeroCompte) {
+
+        return transactionDAO.findByCompteTrieesParDate(numeroCompte);
     }
 }

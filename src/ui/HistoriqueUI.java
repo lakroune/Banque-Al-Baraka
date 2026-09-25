@@ -17,16 +17,20 @@ public class HistoriqueUI {
 
     public void executer() {
         System.out.println("\n--- Consulter l'historique des transactions ---");
-        System.out.print("Entrez l'ID du compte : ");
-        String idCompteHist = scanner.nextLine();
-        List<Transaction> historique = transactionService.listerParCompteTrieesParDate(idCompteHist);
+        System.out.print("Entrez numero du compte : ");
+        String NumCompteHist = scanner.nextLine();
+        List<Transaction> historique = transactionService.listerParCompteTrieesParDate(NumCompteHist);
 
         if (historique.isEmpty()) {
             System.out.println("Aucune transaction trouvée pour ce compte.");
         } else {
             System.out.println("Historique trié par date :");
             for (Transaction t : historique) {
-                System.out.println("- [" + t.getDate() + "] " + t.getType() + " : " + t.getMontant() + " MAD (Lieu: " + t.getLieu() + ")");
+                System.out.println("- [" + t.getDate() + "] "
+                        + t.getType() + " : "
+                        + t.getMontant()
+                        + " MAD (Lieu: "
+                        + t.getLieu() + ")");
             }
         }
     }

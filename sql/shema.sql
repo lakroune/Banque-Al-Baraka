@@ -33,3 +33,5 @@ CREATE TABLE transactions (
 );
 
 SELECT * from transactions;
+
+SELECT t.* FROM transactions t JOIN comptes c ON t.compte_id = c.id WHERE c.numero = '2020' ORDER BY t.date_transaction DESC;
