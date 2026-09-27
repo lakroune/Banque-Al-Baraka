@@ -1,8 +1,8 @@
 package DAOS;
 
-import models.TypeTransaction;
 import models.Compte;
 import models.Transaction;
+import models.TypeTransaction;
 import util.DatabaseConnection;
 
 import java.sql.*;
@@ -15,29 +15,30 @@ public class TransactionDAO implements DAO<Transaction> {
 
     private final CompteDAO compteDAO = new CompteDAO();
 
-    @Override
-    public boolean create(Transaction obj) {
-        String sql = "INSERT INTO transactions (id, date_transaction, montant, type, lieu, compte_id) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement pstmt = connection.prepareStatement(sql)) {
+    public boolean create(Transaction obj, Connection connection) throws SQLException {
+        String sql = "INSERT INTO transactions (id, date_transaction, montant, type, lieu, compte_source_id, compte_destination_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, obj.getId());
-            pstmt.setObject(2, obj.getDate()); // Java 8 LocalDate supporté par JDBC moderne
+            pstmt.setObject(2, obj.getDate());
             pstmt.setDouble(3, obj.getMontant());
             pstmt.setString(4, obj.getType().name());
             pstmt.setString(5, obj.getLieu());
 
-            if (obj.getCompte() != null) {
-                pstmt.setString(6, obj.getCompte().getId());
+            if (obj.getCompteSource() != null) {
+                pstmt.setString(6, obj.getCompteSource().getId());
             } else {
                 pstmt.setNull(6, Types.VARCHAR);
             }
 
+            if (obj.getCompteDestination() != null) {
+                pstmt.setString(7, obj.getCompteDestination().getId());
+            } else {
+                pstmt.setNull(7, Types.VARCHAR);
+            }
+
             return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return false;
     }
 
     @Override
@@ -74,7 +75,7 @@ public class TransactionDAO implements DAO<Transaction> {
 
     @Override
     public boolean update(Transaction obj) throws SQLException {
-        String sql = "UPDATE transactions SET date_transaction = ?, montant = ?, type = ?, lieu = ?, compte_id = ? WHERE id = ?";
+        String sql = "UPDATE transactions SET date_transaction = ?, montant = ?, type = ?, lieu = ?, compte_source_id = ?, compte_destination_id = ? WHERE id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
@@ -83,13 +84,19 @@ public class TransactionDAO implements DAO<Transaction> {
             pstmt.setString(3, obj.getType().name());
             pstmt.setString(4, obj.getLieu());
 
-            if (obj.getCompte() != null) {
-                pstmt.setString(5, obj.getCompte().getId());
+            if (obj.getCompteSource() != null) {
+                pstmt.setString(5, obj.getCompteSource().getId());
             } else {
                 pstmt.setNull(5, Types.VARCHAR);
             }
 
-            pstmt.setString(6, obj.getId());
+            if (obj.getCompteDestination() != null) {
+                pstmt.setString(6, obj.getCompteDestination().getId());
+            } else {
+                pstmt.setNull(6, Types.VARCHAR);
+            }
+
+            pstmt.setString(7, obj.getId());
 
             return pstmt.executeUpdate() > 0;
         }
@@ -113,28 +120,43 @@ public class TransactionDAO implements DAO<Transaction> {
         String typeStr = resultat.getString("type");
         TypeTransaction type = typeStr != null ? TypeTransaction.valueOf(typeStr) : null;
         String lieu = resultat.getString("lieu");
-        String compteId = resultat.getString("compte_id");
 
-        Compte compte = null;
-        if (compteId != null) {
-            Optional<Compte> compteOpt = compteDAO.findById(compteId);
-            if (compteOpt.isPresent()) {
-                compte = compteOpt.get();
+        String compteSourceId = resultat.getString("compte_source_id");
+        String compteDestId = resultat.getString("compte_destination_id");
+
+        Compte compteSource = null;
+        if (compteSourceId != null) {
+            Optional<Compte> srcOpt = compteDAO.findById(compteSourceId);
+            if (srcOpt.isPresent()) {
+                compteSource = srcOpt.get();
             }
         }
 
-        return new Transaction(id, date, montant, type, lieu, compte);
+        Compte compteDestination = null;
+        if (compteDestId != null) {
+            Optional<Compte> destOpt = compteDAO.findById(compteDestId);
+            if (destOpt.isPresent()) {
+                compteDestination = destOpt.get();
+            }
+        }
+
+        return new Transaction(id, date, montant, type, lieu, compteSource, compteDestination);
     }
 
     public List<Transaction> findByCompteTrieesParDate(String numeroCompte) {
         List<Transaction> transactions = new ArrayList<>();
 
-        String sql = "SELECT t.* FROM transactions t JOIN comptes c ON t.compte_id = c.id WHERE c.numero = ? ORDER BY t.date_transaction DESC";
+        String sql = "SELECT DISTINCT t.* FROM transactions t " +
+                "LEFT JOIN comptes cs ON t.compte_source_id = cs.id " +
+                "LEFT JOIN comptes cd ON t.compte_destination_id = cd.id " +
+                "WHERE cs.numero = ? OR cd.numero = ? " +
+                "ORDER BY t.date_transaction DESC";
 
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, numeroCompte);
+            pstmt.setString(2, numeroCompte);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {

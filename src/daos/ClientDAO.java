@@ -1,6 +1,9 @@
 package DAOS;
 
 import models.Client;
+import models.Compte;
+import models.CompteCourant;
+import models.CompteEpargne;
 import util.DatabaseConnection;
 
 import java.sql.*;
@@ -34,18 +37,51 @@ public class ClientDAO implements DAO<Client> {
     }
 
     @Override
+
     public Optional<Client> findById(String id) throws SQLException {
-        String sql = "SELECT * FROM clients WHERE id = ?";
+        String sql = "SELECT c.id AS client_id, c.nom, c.email, " +
+                "com.id AS compte_id, com.numero, com.solde, com.decouvert_autorise, com.taux_interet, com.type_compte "
+                +
+                "FROM clients c LEFT JOIN compte com ON c.id = com.client_id WHERE c.id = ?";
+
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, id);
             try (ResultSet resultat = pstmt.executeQuery()) {
-                if (resultat.next()) {
-                    Client client = new Client(
-                            resultat.getString("id"),
-                            resultat.getString("nom"),
-                            resultat.getString("email"));
+                Client client = null;
+                List<Compte> listcompte = new ArrayList<>();
+
+                while (resultat.next()) {
+                    if (client == null) {
+                        client = new Client(
+                                resultat.getString("client_id"),
+                                resultat.getString("nom"),
+                                resultat.getString("email"),
+                                listcompte);
+                    }
+
+                    String compteId = resultat.getString("compte_id");
+                    if (compteId != null) {
+                        String typeCompte = resultat.getString("type_compte");
+                        String numero = resultat.getString("numero");
+                        double solde = resultat.getDouble("solde");
+
+                        if ("COURANT".equalsIgnoreCase(typeCompte)) {
+                            double decouvert = resultat.getDouble("decouvert_autorise");
+                            CompteCourant cc = new CompteCourant(compteId, numero, solde, decouvert);
+                            cc.setClient(client);
+                            listcompte.add(cc);
+                        } else if ("EPARGNE".equalsIgnoreCase(typeCompte)) {
+                            double taux = resultat.getDouble("taux_interet");
+                            CompteEpargne ce = new CompteEpargne(compteId, numero, solde, taux);
+                            ce.setClient(client);
+                            listcompte.add(ce);
+                        }
+                    }
+                }
+
+                if (client != null) {
                     return Optional.of(client);
                 }
             }
@@ -91,8 +127,7 @@ public class ClientDAO implements DAO<Client> {
         String sql = "DELETE FROM clients WHERE id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
-
-            pstmt.setInt(1, Integer.parseInt(id));
+            pstmt.setString(1, id);
             return pstmt.executeUpdate() > 0;
         }
     }

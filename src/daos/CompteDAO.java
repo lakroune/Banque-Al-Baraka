@@ -151,6 +151,23 @@ public class CompteDAO implements DAO<Compte> {
         return compte;
     }
 
+    // findById
+    public Optional<Compte> findByNumero(String numero) throws SQLDataException {
+        String sql = "SELECT * FROM comptes WHERE numero = ?";
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            pstmt.setString(1, numero);
+            ResultSet resultSet = pstmt.executeQuery(sql);
+            if (resultSet.next())
+                return Optional.of(mapResultSetToCompte(resultSet));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return Optional.empty();
+
+    }
+
     public Optional<Compte> trouverCompteSoldeMax() throws SQLException {
         String sql = "SELECT * FROM comptes ORDER BY solde DESC LIMIT 1";
         try (Connection conn = DatabaseConnection.getConnection();

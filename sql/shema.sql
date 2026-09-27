@@ -24,14 +24,45 @@ CREATE TABLE comptes (
 
 CREATE TABLE transactions (
     id VARCHAR(50) PRIMARY KEY,
-    compte_id VARCHAR(50) NOT NULL,
+    compte_source_id VARCHAR(50),
+    compte_destination_id VARCHAR(50),
     montant DOUBLE PRECISION NOT NULL,
-    type VARCHAR(50) NOT NULL, -- 'VERSEMENT', 'RETRAIT', 'VIREMENT'
-    date_transaction TIMESTAMP NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    date_transaction DATE NOT NULL,
     lieu VARCHAR(100),
-    CONSTRAINT fk_transaction_compte FOREIGN KEY (compte_id) REFERENCES comptes (id) ON DELETE CASCADE
+    CONSTRAINT chk_type_transaction CHECK (
+        type IN (
+            'VERSEMENT',
+            'RETRAIT',
+            'VIREMENT'
+        )
+    ),
+    CONSTRAINT chk_montant_positif CHECK (montant > 0),
+    CONSTRAINT fk_transaction_compte_source FOREIGN KEY (compte_source_id) REFERENCES comptes (id) ON DELETE CASCADE,
+    CONSTRAINT fk_transaction_compte_dest FOREIGN KEY (compte_destination_id) REFERENCES comptes (id) ON DELETE CASCADE
 );
 
 SELECT * from transactions;
 
-SELECT t.* FROM transactions t JOIN comptes c ON t.compte_id = c.id WHERE c.numero = '2020' ORDER BY t.date_transaction DESC;
+SELECT *
+FROM clients c
+    LEFT JOIN compte com ON c.id = com.client_id;
+
+SELECT t.*
+FROM transactions t
+    JOIN comptes c ON t.compte_id = c.id
+WHERE
+    c.numero = '2020'
+ORDER BY t.date_transaction DESC;
+
+SELECT * FROM transactions WHERE montant >= 1000;
+
+SELECT * FROM transactions;
+
+SELECT *
+FROM clients cli
+    LEFT JOIN compte co ON cli.id = co.client_id;
+
+SELECT * FROM clients;
+
+SELECT * FROM comptes;

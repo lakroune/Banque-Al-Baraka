@@ -1,13 +1,12 @@
 package UI;
 
 import models.Compte;
-import models.CompteCourant;
-import models.Transaction;
 import models.TypeTransaction;
 import services.CompteService;
 import services.TransactionService;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class TransactionUI {
@@ -22,35 +21,104 @@ public class TransactionUI {
 
     public void executer() {
         System.out.println("\n--- Enregistrer une transaction ---");
-        System.out.print("Numero du compte : ");
-        String compteNum = scanner.nextLine();
+        System.out.println("1. Versement");
+        System.out.println("2. Retrait");
+        System.out.println("3. Virement");
+        System.out.print("Votre choix (1/2/3) : ");
+        String choix = scanner.nextLine().trim();
 
-
-
-        Compte compte = compteService.trouverCompteParNumero(compteNum).orElse(null);
-        if (compte == null) {
-            compte = new CompteCourant();
-            compte.setNumero(compteNum); 
+        switch (choix) {
+            case "1":
+                saisirVersement();
+                break;
+            case "2":
+                saisirRetrait();
+                break;
+            case "3":
+                saisirVirement();
+                break;
+            default:
+                System.out.println("Erreur : Choix invalide.");
         }
-
-        System.out.print("Montant : ");
-        double montant = scanner.nextDouble();
-        scanner.nextLine();
-        System.out.print("Type (VERSEMENT / RETRAIT / VIREMENT) : ");
-        String typeStr = scanner.nextLine();
-        System.out.print("Lieu de la transaction (ex: Maroc) : ");
-        String lieu = scanner.nextLine();
-
-        Transaction tx = new Transaction();
-        tx.setCompte(compte);
-        tx.setMontant(montant);     
-        tx.setType(TypeTransaction.valueOf(typeStr.toUpperCase()));
-        tx.setDate(LocalDate.now());
-        tx.setLieu(lieu);
-
-        transactionService.enregistrerTransaction(tx);
-        System.out.println("Transaction enregistrée avec succès pour le compte N°: " + compteNum);
-
     }
 
+    private void saisirVersement() {
+        System.out.println("\n--- Nouveau Versement ---");
+        Compte compteDestination = saisirCompte("Numero du compte destinataire : ");
+        if (compteDestination == null) return;
+
+        double montant = saisirMontant();
+        String lieu = saisirLieu();
+
+        boolean success = transactionService.effectuerVersement(compteDestination, montant, lieu, LocalDate.now());
+        afficherResultat(success, TypeTransaction.VERSEMENT);
+    }
+
+    private void saisirRetrait() {
+        System.out.println("\n--- Nouveau Retrait ---");
+        Compte compteSource = saisirCompte("Numero du compte source : ");
+        if (compteSource == null) return;
+
+        double montant = saisirMontant();
+        String lieu = saisirLieu();
+
+        boolean success = transactionService.effectuerRetrait(compteSource, montant, lieu, LocalDate.now());
+        afficherResultat(success, TypeTransaction.RETRAIT);
+    }
+
+    private void saisirVirement() {
+        System.out.println("\n--- Nouveau Virement ---");
+        Compte compteSource = saisirCompte("Numero du compte source : ");
+        if (compteSource == null) return;
+
+        Compte compteDestination = saisirCompte("Numero du compte destinataire : ");
+        if (compteDestination == null) return;
+
+        if (compteSource.getNumero().equals(compteDestination.getNumero())) {
+            System.out.println("Erreur : Les comptes source et destination doivent être différents.");
+            return;
+        }
+
+        double montant = saisirMontant();
+        String lieu = saisirLieu();
+
+        boolean success = transactionService.effectuerVirement(compteSource, compteDestination, montant, lieu, LocalDate.now());
+        afficherResultat(success, TypeTransaction.VIREMENT);
+    }
+
+    private Compte saisirCompte(String message) {
+        System.out.print(message);
+        String numero = scanner.nextLine();
+        Optional<Compte> optionalCompte = compteService.trouverCompteParNumero(numero);
+        if (optionalCompte.isEmpty()) {
+            System.out.println("Erreur : Aucun compte trouvé avec le numéro " + numero);
+            return null;
+        }
+        return optionalCompte.get();
+    }
+
+    private double saisirMontant() {
+        System.out.print("Montant : ");
+        while (!scanner.hasNextDouble()) {
+            System.out.println("Veuillez entrer un montant valide.");
+            scanner.next();
+            System.out.print("Montant : ");
+        }
+        double montant = scanner.nextDouble();
+        scanner.nextLine();
+        return montant;
+    }
+
+    private String saisirLieu() {
+        System.out.print("Lieu de la transaction (ex: Maroc) : ");
+        return scanner.nextLine();
+    }
+
+    private void afficherResultat(boolean success, TypeTransaction type) {
+        if (success) {
+            System.out.println("Transaction (" + type + ") enregistrée avec succès !");
+        } else {
+            System.out.println("Erreur lors de l'enregistrement (solde insuffisant ou problème technique).");
+        }
+    }
 }

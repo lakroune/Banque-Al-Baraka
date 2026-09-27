@@ -43,9 +43,23 @@ public class CompteService {
         return false;
     }
 
+    public boolean supprimerCompte(String compteNum) {
+        try {
+            Optional<Compte> existingCompte = compteDAO.findByNumero(compteNum);
+            if (existingCompte.isEmpty()) {
+                System.out.println("Erreur : Compte introuvable avec le numéro " + compteNum);
+                return false;
+            }
+            return compteDAO.delete(existingCompte.get().getId());
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la suppression du compte : " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public List<Compte> trouverComptesParClient(String clientId) {
         try {
-            // Suppose que votre CompteDAO ou une méthode spécifique filtre par client
             return compteDAO.findAll().stream()
                     .filter(c -> c.getClient() != null && String.valueOf(c.getClient().getId()).equals(clientId))
                     .toList();

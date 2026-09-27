@@ -9,28 +9,33 @@ public class Transaction {
     private Double montant;
     private TypeTransaction type;
     private String lieu;
-    private Compte compte;
+    private Compte compteSource;
+    private Compte compteDestination;
 
     public Transaction() {
         this.id = UUID.randomUUID().toString();
     }
 
-    public Transaction(String id, LocalDate date, Double montant, TypeTransaction type, String lieu, Compte compte) {
+    public Transaction(String id, LocalDate date, Double montant, TypeTransaction type, String lieu,
+            Compte compteSource, Compte compteDestination) {
         this.id = id != null ? id : UUID.randomUUID().toString();
         this.date = date;
         this.montant = montant;
         this.type = type;
         this.lieu = lieu;
-        this.compte = compte;
+        this.compteSource = compteSource;
+        this.compteDestination = compteDestination;
     }
 
-    public Transaction(LocalDate date, Double montant, TypeTransaction type, String lieu, Compte compte) {
+    public Transaction(LocalDate date, Double montant, TypeTransaction type, String lieu, Compte compteSource,
+            Compte compteDestination) {
         this.id = UUID.randomUUID().toString();
         this.date = date;
         this.montant = montant;
         this.type = type;
         this.lieu = lieu;
-        this.compte = compte;
+        this.compteSource = compteSource;
+        this.compteDestination = compteDestination;
     }
 
     public String getId() {
@@ -73,12 +78,20 @@ public class Transaction {
         this.lieu = lieu;
     }
 
-    public Compte getCompte() {
-        return compte;
+    public Compte getCompteSource() {
+        return compteSource;
     }
 
-    public void setCompte(Compte compte) {
-        this.compte = compte;
+    public void setCompteSource(Compte compteSource) {
+        this.compteSource = compteSource;
+    }
+
+    public Compte getCompteDestination() {
+        return compteDestination;
+    }
+
+    public void setCompteDestination(Compte compteDestination) {
+        this.compteDestination = compteDestination;
     }
 
     @Override
@@ -89,6 +102,8 @@ public class Transaction {
                 ", montant=" + montant +
                 ", type=" + type +
                 ", lieu='" + lieu + '\'' +
+                ", compteSource=" + (compteSource != null ? compteSource.getNumero() : "null") +
+                ", compteDestination=" + (compteDestination != null ? compteDestination.getNumero() : "null") +
                 '}';
     }
 }
