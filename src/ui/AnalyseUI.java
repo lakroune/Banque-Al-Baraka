@@ -25,10 +25,14 @@ public class AnalyseUI {
         scanner.nextLine();
 
         if (choixAnalyse == 1) {
-            List<Client> top5 = rapportService.genererTop5ClientsParSolde();
-            System.out.println("\n--- Top 5 Clients ---");
-            for (Client c : top5) {
-                System.out.println("- " + c.getNom() + " (" + c.getEmail() + ")");
+            try {
+                List<Client> top5 = rapportService.genererTop5ClientsParSolde();
+                System.out.println("\n--- Top 5 Clients ---");
+                for (Client c : top5) {
+                    System.out.println("- " + c.getNom() + " (" + c.getEmail() + ")");
+                }
+            } catch (RuntimeException e) {
+                System.out.println("Erreur lors de la génération du rapport : " + e.getMessage());
             }
         } else if (choixAnalyse == 3) {
             System.out.println("Analyse des transactions suspectes en cours...");

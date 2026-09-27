@@ -14,7 +14,7 @@ import java.util.Optional;
 public class ClientDAO implements DAO<Client> {
 
     @Override
-    public boolean create(Client obj) {
+    public boolean create(Client obj) throws SQLException {
         if (obj.getId() == null || obj.getId().isEmpty()) {
             obj.setId(java.util.UUID.randomUUID().toString());
         }
@@ -29,20 +29,15 @@ public class ClientDAO implements DAO<Client> {
             pstmt.setString(3, obj.getEmail());
 
             return pstmt.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return false;
     }
 
     @Override
-
     public Optional<Client> findById(String id) throws SQLException {
         String sql = "SELECT c.id AS client_id, c.nom, c.email, " +
                 "com.id AS compte_id, com.numero, com.solde, com.decouvert_autorise, com.taux_interet, com.type_compte "
                 +
-                "FROM clients c LEFT JOIN compte com ON c.id = com.client_id WHERE c.id = ?";
+                "FROM clients c LEFT JOIN comptes com ON c.id = com.client_id WHERE c.id = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {

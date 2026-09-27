@@ -4,6 +4,9 @@ import models.Compte;
 import models.TypeTransaction;
 import services.CompteService;
 import services.TransactionService;
+import exceptions.CompteIntrouvableException;
+import exceptions.MontantInvalideException;
+import exceptions.SoldeInsuffisantException;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -50,8 +53,14 @@ public class TransactionUI {
         double montant = saisirMontant();
         String lieu = saisirLieu();
 
-        boolean success = transactionService.effectuerVersement(compteDestination, montant, lieu, LocalDate.now());
-        afficherResultat(success, TypeTransaction.VERSEMENT);
+        try {
+            boolean success = transactionService.effectuerVersement(compteDestination, montant, lieu, LocalDate.now());
+            afficherResultat(success, TypeTransaction.VERSEMENT);
+        } catch (MontantInvalideException | SoldeInsuffisantException | CompteIntrouvableException e) {
+            System.out.println("\nOpération refusée : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("\nErreur technique : " + e.getMessage());
+        }
     }
 
     private void saisirRetrait() {
@@ -62,8 +71,14 @@ public class TransactionUI {
         double montant = saisirMontant();
         String lieu = saisirLieu();
 
-        boolean success = transactionService.effectuerRetrait(compteSource, montant, lieu, LocalDate.now());
-        afficherResultat(success, TypeTransaction.RETRAIT);
+        try {
+            boolean success = transactionService.effectuerRetrait(compteSource, montant, lieu, LocalDate.now());
+            afficherResultat(success, TypeTransaction.RETRAIT);
+        } catch (MontantInvalideException | SoldeInsuffisantException | CompteIntrouvableException e) {
+            System.out.println("\nOpération refusée : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("\nErreur technique : " + e.getMessage());
+        }
     }
 
     private void saisirVirement() {
@@ -82,14 +97,27 @@ public class TransactionUI {
         double montant = saisirMontant();
         String lieu = saisirLieu();
 
-        boolean success = transactionService.effectuerVirement(compteSource, compteDestination, montant, lieu, LocalDate.now());
-        afficherResultat(success, TypeTransaction.VIREMENT);
+        try {
+            boolean success = transactionService.effectuerVirement(compteSource, compteDestination, montant, lieu, LocalDate.now());
+            afficherResultat(success, TypeTransaction.VIREMENT);
+        } catch (MontantInvalideException | SoldeInsuffisantException | CompteIntrouvableException e) {
+            System.out.println("\nOpération refusée : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("\nErreur technique : " + e.getMessage());
+        }
     }
 
     private Compte saisirCompte(String message) {
         System.out.print(message);
         String numero = scanner.nextLine();
-        Optional<Compte> optionalCompte = compteService.trouverCompteParNumero(numero);
+        Optional<Compte> optionalCompte;
+        try {
+            optionalCompte = compteService.trouverCompteParNumero(numero);
+        } catch (RuntimeException e) {
+            System.out.println("Erreur technique : " + e.getMessage());
+            return null;
+        }
+
         if (optionalCompte.isEmpty()) {
             System.out.println("Erreur : Aucun compte trouvé avec le numéro " + numero);
             return null;

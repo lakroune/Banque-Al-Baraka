@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface DAO<T> {
 
-    boolean create(T obj);
+    boolean create(T obj) throws SQLException;
 
     Optional<T> findById(String id) throws SQLException;
 

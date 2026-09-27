@@ -16,37 +16,41 @@ public class CompteDAO implements DAO<Compte> {
     private final ClientDAO clientDAO = new ClientDAO();
 
     @Override
-    public boolean create(Compte obj) {
-        String sql = "INSERT INTO comptes (id, numero, decouvert_autorise, taux_interet, type_compte, client_id) VALUES (?, ?, ?, ?, ?, ?)";
+    public boolean create(Compte obj) throws SQLException {
+        if (obj.getId() == null || obj.getId().isEmpty()) {
+            obj.setId(java.util.UUID.randomUUID().toString());
+        }
+
+        String sql = "INSERT INTO comptes (id, numero, solde, decouvert_autorise, taux_interet, type_compte, client_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, obj.getId());
             pstmt.setString(2, obj.getNumero());
+            pstmt.setDouble(3, obj.getSolde());
 
             if (obj instanceof CompteCourant) {
                 Double decouvert = ((CompteCourant) obj).getDecouvertAutorise();
-                pstmt.setDouble(3, decouvert != null ? decouvert : 0.0);
-                pstmt.setNull(4, Types.DOUBLE);
-                pstmt.setString(5, "COURANT");
+                pstmt.setDouble(4, decouvert != null ? decouvert : 0.0);
+                pstmt.setNull(5, Types.DOUBLE);
+                pstmt.setString(6, "COURANT");
             } else if (obj instanceof CompteEpargne) {
-                pstmt.setNull(3, Types.DOUBLE);
+                pstmt.setNull(4, Types.DOUBLE);
                 Double taux = ((CompteEpargne) obj).getTauxInteret();
-                pstmt.setDouble(4, taux != null ? taux : 0.0);
-                pstmt.setString(5, "EPARGNE");
+                pstmt.setDouble(5, taux != null ? taux : 0.0);
+                pstmt.setString(6, "EPARGNE");
+            } else {
+                throw new SQLException("Type de compte non supporté : " + obj.getClass().getName());
             }
 
             if (obj.getClient() != null) {
-                pstmt.setString(6, obj.getClient().getId());
+                pstmt.setString(7, obj.getClient().getId());
             } else {
-                pstmt.setNull(6, Types.VARCHAR);
+                pstmt.setNull(7, Types.VARCHAR);
             }
 
             return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return false;
     }
 
     @Override
@@ -83,27 +87,41 @@ public class CompteDAO implements DAO<Compte> {
 
     @Override
     public boolean update(Compte obj) throws SQLException {
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            return update(obj, connection);
+        }
+    }
+
+    /**
+     * Met a jour le compte en utilisant la connexion fournie par l'appelant.
+     * Permet d'inscrire la mise a jour du solde dans une transaction SQL externe
+     * (utilise par TransactionService pour garantir l'atomicite versement / retrait / virement).
+     */
+    public boolean update(Compte obj, Connection connection) throws SQLException {
         String sql = "UPDATE comptes SET numero = ?, solde = ?, decouvert_autorise = ?, taux_interet = ?, type_compte = ?, client_id = ? WHERE id = ?";
-        try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, obj.getNumero());
             pstmt.setDouble(2, obj.getSolde());
 
             if (obj instanceof CompteCourant) {
-                pstmt.setDouble(3, ((CompteCourant) obj).getDecouvertAutorise());
+                Double decouvert = ((CompteCourant) obj).getDecouvertAutorise();
+                pstmt.setDouble(3, decouvert != null ? decouvert : 0.0);
                 pstmt.setNull(4, Types.DOUBLE);
                 pstmt.setString(5, "COURANT");
             } else if (obj instanceof CompteEpargne) {
                 pstmt.setNull(3, Types.DOUBLE);
-                pstmt.setDouble(4, ((CompteEpargne) obj).getTauxInteret());
+                Double taux = ((CompteEpargne) obj).getTauxInteret();
+                pstmt.setDouble(4, taux != null ? taux : 0.0);
                 pstmt.setString(5, "EPARGNE");
+            } else {
+                throw new SQLException("Type de compte non supporté : " + obj.getClass().getName());
             }
 
             if (obj.getClient() != null) {
                 pstmt.setString(6, obj.getClient().getId());
             } else {
-                pstmt.setNull(6, Types.INTEGER);
+                pstmt.setNull(6, Types.VARCHAR);
             }
 
             pstmt.setString(7, obj.getId());
@@ -151,21 +169,20 @@ public class CompteDAO implements DAO<Compte> {
         return compte;
     }
 
-    // findById
-    public Optional<Compte> findByNumero(String numero) throws SQLDataException {
+    // Recherche d'un compte par son numéro (méthode spécifique, non définie dans l'interface DAO)
+    public Optional<Compte> findByNumero(String numero) throws SQLException {
         String sql = "SELECT * FROM comptes WHERE numero = ?";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, numero);
-            ResultSet resultSet = pstmt.executeQuery(sql);
-            if (resultSet.next())
-                return Optional.of(mapResultSetToCompte(resultSet));
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+            try (ResultSet resultat = pstmt.executeQuery()) {
+                if (resultat.next()) {
+                    return Optional.of(mapResultSetToCompte(resultat));
+                }
+            }
         }
         return Optional.empty();
-
     }
 
     public Optional<Compte> trouverCompteSoldeMax() throws SQLException {

@@ -6,6 +6,8 @@ import models.CompteCourant;
 import models.CompteEpargne;
 import services.ClientService;
 import services.CompteService;
+import exceptions.ClientIntrouvableException;
+import exceptions.CompteIntrouvableException;
 
 import java.util.Optional;
 import java.util.Scanner;
@@ -77,11 +79,17 @@ public class ClientCompteUI {
         nouveauClient.setNom(nom);
         nouveauClient.setEmail(email);
 
-        boolean clientCree = clientService.ajouterClient(nouveauClient);
-        if (clientCree) {
-            System.out.println("Client créé avec succès ! ID attribué : " + nouveauClient.getId());
-        } else {
-            System.out.println("Erreur lors de la création du client.");
+        try {
+            boolean clientCree = clientService.ajouterClient(nouveauClient);
+            if (clientCree) {
+                System.out.println("Client créé avec succès ! ID attribué : " + nouveauClient.getId());
+            } else {
+                System.out.println("Erreur lors de la création du client.");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erreur : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("Erreur technique : " + e.getMessage());
         }
     }
 
@@ -90,7 +98,14 @@ public class ClientCompteUI {
         System.out.print("Entrez l'ID du client propriétaire : ");
         String clientId = scanner.nextLine();
 
-        Optional<Client> client = clientService.trouverClientParId(clientId);
+        Optional<Client> client;
+        try {
+            client = clientService.trouverClientParId(clientId);
+        } catch (RuntimeException e) {
+            System.out.println("Erreur technique : " + e.getMessage());
+            return;
+        }
+
         if (!client.isPresent()) {
             System.out.println("Aucun client trouvé avec cet ID.");
             return;
@@ -103,24 +118,30 @@ public class ClientCompteUI {
         System.out.print("Numéro de compte : ");
         String numero = scanner.nextLine();
 
-        if (typeCompte == 1) {
-            System.out.print("Découvert autorisé : ");
-            double decouvert = scanner.nextDouble();
-            scanner.nextLine();
+        try {
+            if (typeCompte == 1) {
+                System.out.print("Découvert autorisé : ");
+                double decouvert = scanner.nextDouble();
+                scanner.nextLine();
 
-            CompteCourant cc = new CompteCourant(numero, 0.0, decouvert);
-            cc.setClient(client.get());
-            compteService.creerCompte(cc);
-        } else {
-            System.out.print("Taux d'intérêt : ");
-            double taux = scanner.nextDouble();
-            scanner.nextLine();
+                CompteCourant cc = new CompteCourant(numero, 0.0, decouvert);
+                cc.setClient(client.get());
+                compteService.creerCompte(cc);
+            } else {
+                System.out.print("Taux d'intérêt : ");
+                double taux = scanner.nextDouble();
+                scanner.nextLine();
 
-            CompteEpargne ce = new CompteEpargne(numero, 0.0, taux);
-            ce.setClient(client.get());
-            compteService.creerCompte(ce);
+                CompteEpargne ce = new CompteEpargne(numero, 0.0, taux);
+                ce.setClient(client.get());
+                compteService.creerCompte(ce);
+            }
+            System.out.println("Compte créé avec succès !");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erreur : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("Erreur technique : " + e.getMessage());
         }
-        System.out.println("Compte créé avec succès !");
     }
 
     private void afficherClient() {
@@ -128,12 +149,16 @@ public class ClientCompteUI {
         System.out.print("Entrez l'ID du client : ");
         String id = scanner.nextLine();
 
-        Optional<Client> client = clientService.trouverClientParId(id);
-        if (client.isPresent()) {
-            System.out.println(client.get());
-            System.out.println("Comptes associés : " + client.get().getCompteList().size());
-        } else {
-            System.out.println("Client introuvable.");
+        try {
+            Optional<Client> client = clientService.trouverClientParId(id);
+            if (client.isPresent()) {
+                System.out.println(client.get());
+                System.out.println("Comptes associés : " + client.get().getCompteList().size());
+            } else {
+                System.out.println("Client introuvable.");
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Erreur technique : " + e.getMessage());
         }
     }
 
@@ -142,11 +167,15 @@ public class ClientCompteUI {
         System.out.print("Entrez le numéro du compte : ");
         String numero = scanner.nextLine();
 
-        Optional<Compte> compte = compteService.trouverCompteParNumero(numero);
-        if (compte.isPresent()) {
-            System.out.println(compte.get());
-        } else {
-            System.out.println("Compte introuvable.");
+        try {
+            Optional<Compte> compte = compteService.trouverCompteParNumero(numero);
+            if (compte.isPresent()) {
+                System.out.println(compte.get());
+            } else {
+                System.out.println("Compte introuvable.");
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Erreur technique : " + e.getMessage());
         }
     }
 
@@ -155,11 +184,19 @@ public class ClientCompteUI {
         System.out.print("Entrez l'ID du client à supprimer : ");
         String id = scanner.nextLine();
 
-        boolean supprime = clientService.supprimerClient(id);
-        if (supprime) {
-            System.out.println("Client supprimé avec succès (et ses comptes associés en cascade).");
-        } else {
-            System.out.println("Échec de la suppression (Client introuvable).");
+        try {
+            boolean supprime = clientService.supprimerClient(id);
+            if (supprime) {
+                System.out.println("Client supprimé avec succès (et ses comptes associés en cascade).");
+            } else {
+                System.out.println("Échec de la suppression du client.");
+            }
+        } catch (ClientIntrouvableException e) {
+            System.out.println("Erreur : " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erreur : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("Erreur technique : " + e.getMessage());
         }
     }
 
@@ -168,11 +205,19 @@ public class ClientCompteUI {
         System.out.print("Entrez le numéro du compte à supprimer : ");
         String numero = scanner.nextLine();
 
-        boolean supprime = compteService.supprimerCompte(numero);
-        if (supprime) {
-            System.out.println("Compte supprimé avec succès.");
-        } else {
-            System.out.println("Échec de la suppression (Compte introuvable).");
+        try {
+            boolean supprime = compteService.supprimerCompte(numero);
+            if (supprime) {
+                System.out.println("Compte supprimé avec succès.");
+            } else {
+                System.out.println("Échec de la suppression du compte.");
+            }
+        } catch (CompteIntrouvableException e) {
+            System.out.println("Erreur : " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erreur : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("Erreur technique : " + e.getMessage());
         }
 
     }

@@ -15,12 +15,40 @@ public class TransactionDAO implements DAO<Transaction> {
 
     private final CompteDAO compteDAO = new CompteDAO();
 
+    @Override
+    public boolean create(Transaction obj) throws SQLException {
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            return create(obj, connection);
+        }
+    }
+
+    /**
+     * Enregistre la transaction en utilisant une connexion fournie par l'appelant.
+     * Permet d'inscrire l'enregistrement dans une transaction SQL externe
+     * (utilisé par TransactionService pour garantir l'atomicité versement / retrait / virement).
+     */
     public boolean create(Transaction obj, Connection connection) throws SQLException {
+        if (obj.getId() == null || obj.getId().isEmpty()) {
+            obj.setId(java.util.UUID.randomUUID().toString());
+        }
+        if (obj.getType() == null) {
+            throw new SQLException("Le type de la transaction ne peut pas être nul.");
+        }
+        if (obj.getMontant() == null) {
+            throw new SQLException("Le montant de la transaction ne peut pas être nul.");
+        }
+
         String sql = "INSERT INTO transactions (id, date_transaction, montant, type, lieu, compte_source_id, compte_destination_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, obj.getId());
-            pstmt.setObject(2, obj.getDate());
+
+            if (obj.getDate() != null) {
+                pstmt.setObject(2, obj.getDate());
+            } else {
+                pstmt.setNull(2, Types.DATE);
+            }
+
             pstmt.setDouble(3, obj.getMontant());
             pstmt.setString(4, obj.getType().name());
             pstmt.setString(5, obj.getLieu());
@@ -75,11 +103,23 @@ public class TransactionDAO implements DAO<Transaction> {
 
     @Override
     public boolean update(Transaction obj) throws SQLException {
+        if (obj.getType() == null) {
+            throw new SQLException("Le type de la transaction ne peut pas être nul.");
+        }
+        if (obj.getMontant() == null) {
+            throw new SQLException("Le montant de la transaction ne peut pas être nul.");
+        }
+
         String sql = "UPDATE transactions SET date_transaction = ?, montant = ?, type = ?, lieu = ?, compte_source_id = ?, compte_destination_id = ? WHERE id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
-            pstmt.setObject(1, obj.getDate());
+            if (obj.getDate() != null) {
+                pstmt.setObject(1, obj.getDate());
+            } else {
+                pstmt.setNull(1, Types.DATE);
+            }
+
             pstmt.setDouble(2, obj.getMontant());
             pstmt.setString(3, obj.getType().name());
             pstmt.setString(4, obj.getLieu());

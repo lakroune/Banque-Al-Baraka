@@ -57,8 +57,8 @@ ORDER BY t.date_transaction DESC;
 
 SELECT * FROM transactions WHERE montant >= 1000;
 
-SELECT * FROM transactions;
-
+SELECT * FROM transactions GROUP BY id;
+update transactions set date_transaction = '2016-09-27'  WHERE id ='bcc9e9cd-655c-467d-8c86-30a14bf6526a';
 SELECT *
 FROM clients cli
     LEFT JOIN compte co ON cli.id = co.client_id;
