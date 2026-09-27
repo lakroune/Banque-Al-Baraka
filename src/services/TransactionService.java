@@ -2,7 +2,7 @@ package services;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import DAOS.CompteDAO;
@@ -21,7 +21,7 @@ public class TransactionService {
     private final TransactionDAO transactionDAO = new TransactionDAO();
     private final CompteDAO compteDAO = new CompteDAO();
 
-    public boolean effectuerVersement(Compte compteDestination, double montant, String lieu, LocalDate date) {
+    public boolean effectuerVersement(Compte compteDestination, double montant, String lieu, LocalDateTime date) {
         validerMontantEtCompte(compteDestination, montant);
 
         try (Connection connection = DatabaseConnection.getConnection()) {
@@ -53,7 +53,7 @@ public class TransactionService {
         }
     }
 
-    public boolean effectuerRetrait(Compte compteSource, double montant, String lieu, LocalDate date) {
+    public boolean effectuerRetrait(Compte compteSource, double montant, String lieu, LocalDateTime date) {
         validerMontantEtCompte(compteSource, montant);
         verifierSoldeDisponible(compteSource, montant);
 
@@ -86,7 +86,7 @@ public class TransactionService {
     }
 
     public boolean effectuerVirement(Compte compteSource, Compte compteDestination, double montant, String lieu,
-            LocalDate date) {
+            LocalDateTime date) {
         validerMontantEtCompte(compteSource, montant);
         if (compteDestination == null) {
             throw new CompteIntrouvableException("Le compte destination ne peut pas être nul.");

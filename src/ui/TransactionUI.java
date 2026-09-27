@@ -8,7 +8,7 @@ import exceptions.CompteIntrouvableException;
 import exceptions.MontantInvalideException;
 import exceptions.SoldeInsuffisantException;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -54,7 +54,7 @@ public class TransactionUI {
         String lieu = saisirLieu();
 
         try {
-            boolean success = transactionService.effectuerVersement(compteDestination, montant, lieu, LocalDate.now());
+            boolean success = transactionService.effectuerVersement(compteDestination, montant, lieu, LocalDateTime.now());
             afficherResultat(success, TypeTransaction.VERSEMENT);
         } catch (MontantInvalideException | SoldeInsuffisantException | CompteIntrouvableException e) {
             System.out.println("\nOpération refusée : " + e.getMessage());
@@ -72,7 +72,7 @@ public class TransactionUI {
         String lieu = saisirLieu();
 
         try {
-            boolean success = transactionService.effectuerRetrait(compteSource, montant, lieu, LocalDate.now());
+            boolean success = transactionService.effectuerRetrait(compteSource, montant, lieu, LocalDateTime.now());
             afficherResultat(success, TypeTransaction.RETRAIT);
         } catch (MontantInvalideException | SoldeInsuffisantException | CompteIntrouvableException e) {
             System.out.println("\nOpération refusée : " + e.getMessage());
@@ -98,7 +98,7 @@ public class TransactionUI {
         String lieu = saisirLieu();
 
         try {
-            boolean success = transactionService.effectuerVirement(compteSource, compteDestination, montant, lieu, LocalDate.now());
+            boolean success = transactionService.effectuerVirement(compteSource, compteDestination, montant, lieu, LocalDateTime.now());
             afficherResultat(success, TypeTransaction.VIREMENT);
         } catch (MontantInvalideException | SoldeInsuffisantException | CompteIntrouvableException e) {
             System.out.println("\nOpération refusée : " + e.getMessage());

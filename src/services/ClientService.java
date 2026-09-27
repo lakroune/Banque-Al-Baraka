@@ -12,12 +12,7 @@ public class ClientService {
 
     private final ClientDAO clientDAO = new ClientDAO();
 
-    /**
-     * Ajoute un nouveau client.
-     *
-     * @throws IllegalArgumentException si le client est null ou si son nom est vide
-     * @throws RuntimeException         en cas d'erreur technique (base de données)
-     */
+   
     public boolean ajouterClient(Client client) {
         if (client == null) {
             throw new IllegalArgumentException("Le client à ajouter ne peut pas être nul.");
@@ -33,12 +28,7 @@ public class ClientService {
         }
     }
 
-    /**
-     * Modifie un client existant.
-     *
-     * @throws ClientIntrouvableException si aucun client ne porte cet ID
-     * @throws IllegalArgumentException   si le client est null
-     */
+   
     public boolean modifierClient(Client client) {
         if (client == null) {
             throw new IllegalArgumentException("Le client à modifier ne peut pas être nul.");
@@ -52,12 +42,7 @@ public class ClientService {
         }
     }
 
-    /**
-     * Supprime un client (et, en cascade, ses comptes et ses transactions).
-     *
-     * @throws ClientIntrouvableException si aucun client ne porte cet ID
-     * @throws IllegalArgumentException   si l'ID est vide
-     */
+   
     public boolean supprimerClient(String id) {
         if (id == null || id.trim().isEmpty()) {
             throw new IllegalArgumentException("L'ID du client à supprimer ne peut pas être vide.");
@@ -71,12 +56,7 @@ public class ClientService {
         }
     }
 
-    /**
-     * Recherche un client par son ID.
-     *
-     * @return le client, ou Optional.empty() si aucun client ne porte cet ID
-     * @throws RuntimeException en cas d'erreur technique (base de données)
-     */
+   
     public Optional<Client> trouverClientParId(String id) {
         try {
             return clientDAO.findById(id);
@@ -85,11 +65,7 @@ public class ClientService {
         }
     }
 
-    /**
-     * Liste tous les clients enregistrés.
-     *
-     * @throws RuntimeException en cas d'erreur technique (base de données)
-     */
+   
     public List<Client> listerTousLesClients() {
         try {
             return clientDAO.findAll();
@@ -98,12 +74,7 @@ public class ClientService {
         }
     }
 
-    /**
-     * Recherche les clients dont le nom contient la chaîne donnée.
-     *
-     * @throws IllegalArgumentException si le nom recherché est vide
-     * @throws RuntimeException         en cas d'erreur technique (base de données)
-     */
+    
     public List<Client> trouverClientsParNom(String nom) {
         if (nom == null || nom.trim().isEmpty()) {
             throw new IllegalArgumentException("Le nom recherché ne peut pas être vide.");
@@ -118,11 +89,7 @@ public class ClientService {
         }
     }
 
-    /**
-     * Vérifie qu'un client existe puis le retourne.
-     *
-     * @throws ClientIntrouvableException si aucun client ne porte cet ID
-     */
+    
     private Client exigerClient(String id) throws SQLException {
         return clientDAO.findById(id)
                 .orElseThrow(() -> new ClientIntrouvableException("Client introuvable avec l'ID " + id));

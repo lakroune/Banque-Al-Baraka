@@ -14,12 +14,7 @@ public class CompteService {
 
     private final CompteDAO compteDAO = new CompteDAO();
 
-    /**
-     * Crée un compte rattaché à un client.
-     *
-     * @throws IllegalArgumentException si le compte est null, sans numéro ou sans client
-     * @throws RuntimeException         en cas d'erreur technique (base de données)
-     */
+ 
     public boolean creerCompte(Compte compte) {
         if (compte == null) {
             throw new IllegalArgumentException("Le compte à créer ne peut pas être nul.");
@@ -38,12 +33,7 @@ public class CompteService {
         }
     }
 
-    /**
-     * Met à jour un compte existant.
-     *
-     * @throws CompteIntrouvableException si aucun compte ne porte cet ID
-     * @throws IllegalArgumentException   si le compte est null
-     */
+    
     public boolean mettreAJourCompte(Compte compte) {
         if (compte == null) {
             throw new IllegalArgumentException("Le compte à mettre à jour ne peut pas être nul.");
@@ -57,12 +47,7 @@ public class CompteService {
         }
     }
 
-    /**
-     * Supprime le compte correspondant au numéro donné.
-     *
-     * @throws CompteIntrouvableException si aucun compte ne porte ce numéro
-     * @throws IllegalArgumentException   si le numéro est vide
-     */
+  
     public boolean supprimerCompte(String compteNum) {
         if (compteNum == null || compteNum.trim().isEmpty()) {
             throw new IllegalArgumentException("Le numéro du compte à supprimer ne peut pas être vide.");
@@ -76,11 +61,16 @@ public class CompteService {
         }
     }
 
-    /**
-     * Liste les comptes rattachés à un client.
-     *
-     * @throws RuntimeException en cas d'erreur technique (base de données)
-     */
+    
+    public List<Compte> listerTousLesComptes() {
+        try {
+            return compteDAO.findAll();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la récupération de la liste des comptes : " + e.getMessage(), e);
+        }
+    }
+
+   
     public List<Compte> trouverComptesParClient(String clientId) {
         try {
             return compteDAO.findAll().stream()
@@ -91,12 +81,7 @@ public class CompteService {
         }
     }
 
-    /**
-     * Recherche un compte par son numéro.
-     *
-     * @return le compte, ou Optional.empty() si aucun compte ne porte ce numéro
-     * @throws RuntimeException en cas d'erreur technique (base de données)
-     */
+     
     public Optional<Compte> trouverCompteParNumero(String numero) {
         try {
             return compteDAO.findAll().stream()
@@ -107,9 +92,7 @@ public class CompteService {
         }
     }
 
-    /**
-     * Recherche le compte au solde le plus élevé.
-     */
+    
     public Optional<Compte> trouverCompteSoldeMaximum() {
         try {
             List<Compte> comptes = compteDAO.findAll();
@@ -120,9 +103,7 @@ public class CompteService {
         }
     }
 
-    /**
-     * Recherche le compte au solde le plus faible.
-     */
+    
     public Optional<Compte> trouverCompteSoldeMinimum() {
         try {
             List<Compte> comptes = compteDAO.findAll();
@@ -133,21 +114,13 @@ public class CompteService {
         }
     }
 
-    /**
-     * Vérifie qu'un compte existe (par son ID) puis le retourne.
-     *
-     * @throws CompteIntrouvableException si aucun compte ne porte cet ID
-     */
+   
     private Compte exigerCompteParId(String id) throws SQLException {
         return compteDAO.findById(id)
                 .orElseThrow(() -> new CompteIntrouvableException("Compte introuvable avec l'ID " + id));
     }
 
-    /**
-     * Vérifie qu'un compte existe (par son numéro) puis le retourne.
-     *
-     * @throws CompteIntrouvableException si aucun compte ne porte ce numéro
-     */
+    
     private Compte exigerCompteParNumero(String numero) throws SQLException {
         return compteDAO.findByNumero(numero)
                 .orElseThrow(() -> new CompteIntrouvableException("Compte introuvable avec le numéro " + numero));

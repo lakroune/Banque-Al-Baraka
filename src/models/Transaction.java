@@ -1,11 +1,11 @@
 package models;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Transaction {
     private String id;
-    private LocalDate date;
+    private LocalDateTime date;
     private Double montant;
     private TypeTransaction type;
     private String lieu;
@@ -16,7 +16,7 @@ public class Transaction {
         this.id = UUID.randomUUID().toString();
     }
 
-    public Transaction(String id, LocalDate date, Double montant, TypeTransaction type, String lieu,
+    public Transaction(String id, LocalDateTime date, Double montant, TypeTransaction type, String lieu,
             Compte compteSource, Compte compteDestination) {
         this.id = id != null ? id : UUID.randomUUID().toString();
         this.date = date;
@@ -27,7 +27,7 @@ public class Transaction {
         this.compteDestination = compteDestination;
     }
 
-    public Transaction(LocalDate date, Double montant, TypeTransaction type, String lieu, Compte compteSource,
+    public Transaction(LocalDateTime date, Double montant, TypeTransaction type, String lieu, Compte compteSource,
             Compte compteDestination) {
         this.id = UUID.randomUUID().toString();
         this.date = date;
@@ -46,11 +46,11 @@ public class Transaction {
         this.id = id;
     }
 
-    public LocalDate getDate() {
+    public LocalDateTime getDate() {
         return date;
     }
 
-    public void setDate(LocalDate date) {
+    public void setDate(LocalDateTime date) {
         this.date = date;
     }
 

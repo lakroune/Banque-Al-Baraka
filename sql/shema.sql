@@ -28,7 +28,7 @@ CREATE TABLE transactions (
     compte_destination_id VARCHAR(50),
     montant DOUBLE PRECISION NOT NULL,
     type VARCHAR(20) NOT NULL,
-    date_transaction DATE NOT NULL,
+    date_transaction TIMESTAMP NOT NULL,
     lieu VARCHAR(100),
     CONSTRAINT chk_type_transaction CHECK (
         type IN (
@@ -41,6 +41,13 @@ CREATE TABLE transactions (
     CONSTRAINT fk_transaction_compte_source FOREIGN KEY (compte_source_id) REFERENCES comptes (id) ON DELETE CASCADE,
     CONSTRAINT fk_transaction_compte_dest FOREIGN KEY (compte_destination_id) REFERENCES comptes (id) ON DELETE CASCADE
 );
+
+-- ---------------------------------------------------------------------------
+-- MIGRATION (base existante uniquement)
+-- Si la table transactions existe deja avec date_transaction en type DATE,
+-- executer la commande ci-dessous pour conserver la date ET l'heure (LocalDateTime).
+-- ---------------------------------------------------------------------------
+-- ALTER TABLE transactions ALTER COLUMN date_transaction TYPE TIMESTAMP USING date_transaction::timestamp;
 
 SELECT * from transactions;
 
@@ -58,10 +65,10 @@ ORDER BY t.date_transaction DESC;
 SELECT * FROM transactions WHERE montant >= 1000;
 
 SELECT * FROM transactions GROUP BY id;
-update transactions set date_transaction = '2016-09-27'  WHERE id ='bcc9e9cd-655c-467d-8c86-30a14bf6526a';
+update transactions set date_transaction = '27/09/2012 18:39:06'  WHERE id ='38c6e1e8-ce47-410e-be35-724cbe474e6b';
 SELECT *
 FROM clients cli
-    LEFT JOIN compte co ON cli.id = co.client_id;
+    LEFT JOIN compte co ON cli.id = co.client_id; 
 
 SELECT * FROM clients;
 

@@ -7,8 +7,11 @@ import util.DatabaseConnection;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class TransactionDAO implements DAO<Transaction> {
@@ -22,11 +25,7 @@ public class TransactionDAO implements DAO<Transaction> {
         }
     }
 
-    /**
-     * Enregistre la transaction en utilisant une connexion fournie par l'appelant.
-     * Permet d'inscrire l'enregistrement dans une transaction SQL externe
-     * (utilisé par TransactionService pour garantir l'atomicité versement / retrait / virement).
-     */
+    
     public boolean create(Transaction obj, Connection connection) throws SQLException {
         if (obj.getId() == null || obj.getId().isEmpty()) {
             obj.setId(java.util.UUID.randomUUID().toString());
@@ -46,7 +45,7 @@ public class TransactionDAO implements DAO<Transaction> {
             if (obj.getDate() != null) {
                 pstmt.setObject(2, obj.getDate());
             } else {
-                pstmt.setNull(2, Types.DATE);
+                pstmt.setNull(2, Types.TIMESTAMP);
             }
 
             pstmt.setDouble(3, obj.getMontant());
@@ -117,7 +116,7 @@ public class TransactionDAO implements DAO<Transaction> {
             if (obj.getDate() != null) {
                 pstmt.setObject(1, obj.getDate());
             } else {
-                pstmt.setNull(1, Types.DATE);
+                pstmt.setNull(1, Types.TIMESTAMP);
             }
 
             pstmt.setDouble(2, obj.getMontant());
@@ -155,7 +154,7 @@ public class TransactionDAO implements DAO<Transaction> {
 
     private Transaction mapResultSetToTransaction(ResultSet resultat) throws SQLException {
         String id = resultat.getString("id");
-        LocalDate date = resultat.getObject("date_transaction", LocalDate.class);
+        LocalDateTime date = resultat.getObject("date_transaction", LocalDateTime.class);
         double montant = resultat.getDouble("montant");
         String typeStr = resultat.getString("type");
         TypeTransaction type = typeStr != null ? TypeTransaction.valueOf(typeStr) : null;
@@ -208,5 +207,35 @@ public class TransactionDAO implements DAO<Transaction> {
             e.printStackTrace();
         }
         return transactions;
+    }
+
+    /**
+     * Retourne la date de la derniere operation enregistree pour chaque compte deja utilise.
+     * Un compte absent de la map n'a jamais enregistre de transaction.
+     * Une seule requete SQL suffit (agregation MAX par compte).
+     *
+     * @return une map (identifiant du compte -> date de la derniere transaction)
+     * @throws SQLException en cas d'erreur technique (base de donnees)
+     */
+    public Map<String, LocalDateTime> findDernieresActivitesParCompte() throws SQLException {
+        Map<String, LocalDateTime> dernieresActivites = new HashMap<>();
+
+        String sql = "SELECT c.id AS compte_id, MAX(t.date_transaction) AS derniere_activite " +
+                "FROM comptes c " +
+                "LEFT JOIN transactions t ON t.compte_source_id = c.id OR t.compte_destination_id = c.id " +
+                "GROUP BY c.id";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+                Statement stmt = connection.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                LocalDateTime derniereActivite = rs.getObject("derniere_activite", LocalDateTime.class);
+                if (derniereActivite != null) {
+                    dernieresActivites.put(rs.getString("compte_id"), derniereActivite);
+                }
+            }
+        }
+        return dernieresActivites;
     }
 }
