@@ -180,16 +180,14 @@ destination, de la plus récente à la plus ancienne.
 ### 4 - Analyses
 
 1. Top 5 clients par solde (somme des soldes de tous leurs comptes)
-2. Rapport mensuel des transactions *(non implémenté : l'option ne produit aucun affichage)*
-3. Transactions suspectes *(placeholder : messages fixes « analyse en cours » puis « aucune
-   anomalie critique »)*
+2. Rapport mensuel des transactions 
+3. Transactions suspectes 
 4. Comptes inactifs (aucune opération depuis 12 mois) — listée avec type, titulaire, solde et
    date de dernière activité
 
 ### 5 - Alertes
 
-Deux messages fixes, sans requête vers la base : « Vérification des soldes bas (< 100 MAD) »
-puis « Aucun compte inactif critique identifié ».
+ 
 
 ## Modèle de données
 
@@ -201,7 +199,7 @@ puis « Aucun compte inactif critique identifié ».
 
 Contraintes : `montant > 0`, type de transaction limité aux trois valeurs autorisées,
 date et heure conservées (`TIMESTAMP`).
-
+<!-- 
 ## Limites connues
 
 - L'écran **Rapport mensuel** (option 2 des analyses) n'affiche rien du tout ; les écrans
@@ -214,4 +212,4 @@ date et heure conservées (`TIMESTAMP`).
   (à externaliser pour un usage réel).
 - Les entrées utilisateur des sous-menus clients/historique ne sont pas toutes validées
   contre les erreurs de saisie (`nextInt()` peut lever `InputMismatchException`).
-- Aucun test automatisé dans le dépôt.
+- Aucun test automatisé dans le dépôt. -->
