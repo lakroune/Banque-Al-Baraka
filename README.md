@@ -199,17 +199,3 @@ destination, de la plus récente à la plus ancienne.
 
 Contraintes : `montant > 0`, type de transaction limité aux trois valeurs autorisées,
 date et heure conservées (`TIMESTAMP`).
-<!-- 
-## Limites connues
-
-- L'écran **Rapport mensuel** (option 2 des analyses) n'affiche rien du tout ; les écrans
-  **Transactions suspectes** et **Alertes** affichent des messages fixes sans calcul réel.
-- Le libellé du menu « Afficher un client (par ID ou email) » est trompeur : seul l'ID est
-  demandé et utilisé. Il n'existe d'ailleurs aucune méthode de recherche par email dans les
-  services (seule une recherche par nom, `ClientService.trouverClientsParNom`, existe) et
-  `ClientService.modifierClient` n'est exposée dans aucun menu.
-- Les identifiants PostgreSQL sont en dur dans `DatabaseConnection.java`
-  (à externaliser pour un usage réel).
-- Les entrées utilisateur des sous-menus clients/historique ne sont pas toutes validées
-  contre les erreurs de saisie (`nextInt()` peut lever `InputMismatchException`).
-- Aucun test automatisé dans le dépôt. -->
